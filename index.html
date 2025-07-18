@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>KC Leads Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    var map = L.map('map').setView([17.5, 104.2], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function getIcon(color) {
+        return new L.Icon({
+            iconUrl: `https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|${color}`,
+            iconSize: [21, 34],
+            iconAnchor: [10, 34],
+            popupAnchor: [0, -30]
+        });
+    }
+
+    fetch('https://opensheet.elk.sh/1UZxR7z7GFmqzYHkkbfeH6pF17OgkucKvCqYjbRf4NJw/database')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(row => {
+                if(row.name && row["Lat,Long"]) {
+                    var latlng = row["Lat,Long"].split(',');
+                    var lat = parseFloat(latlng[0].trim());
+                    var lng = parseFloat(latlng[1].trim());
+
+                    var color = "808080"; // default gray
+
+                    if (row.BU === "MUK") color = "00cc44";   // green
+                    else if (row.BU === "KN") color = "3399ff"; // blue
+                    else if (row.BU === "ST") color = "ffcc00"; // yellow
+
+                    L.marker([lat, lng], { icon: getIcon(color) })
+                     .bindPopup(`<b>${row.name}</b><br>BU: ${row.BU}`)
+                     .addTo(map);
+                }
+            });
+        });
+</script>
+
+</body>
+</html>
