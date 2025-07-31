@@ -140,6 +140,9 @@ customerData.forEach(function (cust) {
 </div>
 
 
+
+
+
 <script>
 async function loadCustomerData() {
     const url = 'https://docs.google.com/spreadsheets/d/1UZxR7z7GFmqzYHkkbfeH6pF17OgkucKvCqYjbRf4NJw/gviz/tq?tqx=out:json&sheet=dataset';
@@ -149,13 +152,23 @@ async function loadCustomerData() {
 
     const data = json.table.rows.map(row => {
         const latLong = row.c[0]?.v || '';
+        if (!latLong.includes(',')) return null;
         const [lat, lng] = latLong.split(',').map(x => parseFloat(x.trim()));
+        if (isNaN(lat) || isNaN(lng)) return null;
+
         return {
-            lat, lng,
-            name: row.c[1]?.v || '',
-            bu: row.c[9]?.v || ''
+            lat,
+            lng,
+            name: row.c[1]?.v ?? 'null',
+            ds: row.c[2]?.v ?? 'null',
+            g91: row.c[3]?.v ?? 'null',
+            g95: row.c[4]?.v ?? 'null',
+            supplier: row.c[5]?.v ?? 'null',
+            resource: row.c[6]?.v ?? 'null',
+            note: row.c[7]?.v ?? 'null',
+            bu: row.c[8]?.v ?? 'null'
         };
-    });
+    }).filter(x => x !== null);
 
     plotCustomerPoints(data);
 }
@@ -169,7 +182,14 @@ function plotCustomerPoints(data) {
             color: '#333',
             weight: 1,
             fillOpacity: 0.8
-        }).addTo(map).bindPopup(`<strong>${item.name}</strong><br>BU: ${item.bu}`);
+        }).addTo(map).bindPopup(
+            `<strong>${item.name}</strong><br>` +
+            `BU: ${item.bu}<br>` +
+            `DS: ${item.ds}, G91: ${item.g91}, G95: ${item.g95}<br>` +
+            `Supplier: ${item.supplier}<br>` +
+            `Resource: ${item.resource}<br>` +
+            `Note: ${item.note}`
+        );
     });
 }
 
